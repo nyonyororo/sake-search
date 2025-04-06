@@ -89,7 +89,7 @@ const ImageUpload = ({setHistory}) => {
     // データ照合
       const cleanedText = text.trim().toLowerCase();
 
-      const matchedSake = sakeList.find((sake) => {
+      const matchedSake = sakelist.find((sake) => {
         return (
           cleanedText.includes(sake.name?.trim().toLowerCase()) ||
           cleanedText.includes(sake.hiragana?.trim().toLowerCase()) ||
