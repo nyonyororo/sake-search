@@ -91,10 +91,10 @@ const ImageUpload = ({setHistory}) => {
 
       const matchedSake = sakeList.find((sake) => {
         return (
-          cleanedText.includes(sake.name.trim().toLowerCase()) ||
-          cleanedText.includes(sake.hiragana.trim().toLowerCase()) ||
-          cleanedText.includes(sake.roman.trim().toLowerCase()) ||
-          cleanedText.includes(sake.brewery.trim().toLowerCase())
+          cleanedText.includes(sake.name?.trim().toLowerCase()) ||
+          cleanedText.includes(sake.hiragana?.trim().toLowerCase()) ||
+          cleanedText.includes(sake.roman?.trim().toLowerCase()) ||
+          cleanedText.includes(sake.brewery?.trim().toLowerCase())
         );
       });
     
