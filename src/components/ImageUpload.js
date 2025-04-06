@@ -87,13 +87,17 @@ const ImageUpload = ({setHistory}) => {
     //   console.log("認識されたテキスト：", text);
       
     // データ照合
-      const matchedSake = sakelist.find((sake) =>
-        text.includes(sake.name) ||
-        text.includes(sake.hiragana) ||
-        text.includes(sake.roman) ||
-        text.includes(sake.brewery)
-      );
-      
+      const cleanedText = text.trim().toLowerCase();
+
+      const matchedSake = sakeList.find((sake) => {
+        return (
+          cleanedText.includes(sake.name.trim().toLowerCase()) ||
+          cleanedText.includes(sake.hiragana.trim().toLowerCase()) ||
+          cleanedText.includes(sake.roman.trim().toLowerCase()) ||
+          cleanedText.includes(sake.brewery.trim().toLowerCase())
+        );
+      });
+    
       if (matchedSake) {
         setResult(
           `🍶 ${matchedSake.name}（${matchedSake.brewery}）\n精米歩合：${matchedSake.polishing}\n特徴：${matchedSake.feature}`
