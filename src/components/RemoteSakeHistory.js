@@ -13,7 +13,7 @@ const RemoteSakeHistory = ({ history }) => {
               <strong>{sake.name}</strong>（{sake.brewery}）<br />
               精米歩合：{sake.polishing}<br />
               特徴：{sake.feature}<br />
-              保存日時：{new Date(sake.timestamp).toLocaleString()}
+              保存日時：{new Date(sake.timestamp).toLocaleString('ja-JP', {timeZone: 'Asia/Tokyo'})}
             </li>
           ))}
         </ul>
