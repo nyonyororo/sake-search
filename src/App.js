@@ -11,7 +11,7 @@ function App() {
   const [remoteHistory, setRemoteHistory] = useState([]);
 
   const fetchRemoteHistory = () => {
-    fetch('${API_BASE}/history')
+    fetch(`${API_BASE}/history`)
       .then((res) => res.json())
       .then((data) => setRemoteHistory(data))
       .catch((err) => console.error("履歴取得に失敗:", err));

@@ -42,10 +42,15 @@ const ImageUpload = ({setHistory,onRemoteUpdate}) => {
     formData.append("file", file);
 
     try {
-      const response = await fetch('${API_BASE}/upload-image', {
+      const response = await fetch(`${API_BASE}/upload-image`, {
         method: "POST",
         body: formData,
       });
+
+      // エラー信号の強化＿空レスポンス、405,500系エラーに対応
+      if (!response.ok) {
+        throw new Error(`APIエラー: ${response.status}`);
+      }
 
       const data = await response.json();
 
@@ -81,7 +86,7 @@ const ImageUpload = ({setHistory,onRemoteUpdate}) => {
         );
   
         // ✅ FastAPIへ履歴を送信！
-        fetch('${API_BASE}/history', {
+        fetch(`${API_BASE}/history`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
