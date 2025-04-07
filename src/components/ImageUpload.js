@@ -1,10 +1,11 @@
 import React,{ useEffect, useState } from 'react';
 import Papa from 'papaparse';
 
+// FastAPI
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
 
 
-
-const ImageUpload = ({setHistory}) => {
+const ImageUpload = ({setHistory,onRemoteUpdate}) => {
 // useState
   const [image, setImage] = useState(null);
   const [file, setFile] = useState(null);
@@ -20,75 +21,51 @@ const ImageUpload = ({setHistory}) => {
       });
   }, []); // ← これが「最初の1回だけ実行するよ」の印！
   
-// イベント処理関数
+
   const handleImageChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       setImage(URL.createObjectURL(selectedFile));
       setFile(selectedFile);
-      setResult(null); // 新しい画像を選んだら結果をリセット
+      setResult(null); // 新しい画像選択時に結果リセット
     }
-  };
+  };  
 
+// イベント処理関数
   const handleUpload = async () => {
     if (!file) {
       alert('画像を選択してください');
       return;
     }
 
-    const reader = new FileReader();
+    const formData = new FormData();
+    formData.append("file", file);
 
-    reader.onloadend = async () => {
-      const base64Image = reader.result.split(',')[1]; // Data URIからbase64だけ抜き出す
-
-      const apiKey = process.env.REACT_APP_GOOGLE_API_KEY;
-
-      const response = await fetch(
-        `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            requests: [
-              {
-                image: {
-                  content: base64Image,
-                },
-                features: [
-                  {
-                    type: 'TEXT_DETECTION',
-                  },
-                ],
-              },
-            ],
-          }),
-        }
-      );
+    try {
+      const response = await fetch('${API_BASE}/upload-image', {
+        method: "POST",
+        body: formData,
+      });
 
       const data = await response.json();
-      console.log(JSON.stringify(data, null, 2));
-
 
       const responses = data.responses;
       if (
-      !responses ||
-      !responses[0] ||
-      !responses[0].textAnnotations ||
-      responses[0].textAnnotations.length === 0
+        !responses ||
+        !responses[0] ||
+        !responses[0].textAnnotations ||
+        responses[0].textAnnotations.length === 0
       ) {
-      setResult('文字が読み取れませんでした');
-      return;
+        setResult('文字が読み取れませんでした');
+        return;
       }
 
       const text = responses[0].textAnnotations[0].description;
 
-    //   console.log("認識されたテキスト：", text);
-      
-    // データ照合
+      // 🔽 認識結果を整形（trim + lowercase）
       const cleanedText = text.trim().toLowerCase();
 
+      // 🔍 CSVデータ（sakelist）と照合
       const matchedSake = sakelist.find((sake) => {
         return (
           cleanedText.includes(sake.name?.trim().toLowerCase()) ||
@@ -97,20 +74,43 @@ const ImageUpload = ({setHistory}) => {
           cleanedText.includes(sake.brewery?.trim().toLowerCase())
         );
       });
-    
+
       if (matchedSake) {
         setResult(
           `🍶 ${matchedSake.name}（${matchedSake.brewery}）\n精米歩合：${matchedSake.polishing}\n特徴：${matchedSake.feature}`
         );
-        // ✅ 履歴に追加！
+  
+        // ✅ FastAPIへ履歴を送信！
+        fetch('${API_BASE}/history', {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(matchedSake),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            console.log("✅ FastAPIからのレスポンス:", data);
+            // 🔄 Remote履歴の再取得（これを追加！）
+            if (onRemoteUpdate) {
+              onRemoteUpdate();
+            }
+          })
+          .catch((err) => {
+            console.error("❌ 履歴送信エラー:", err);
+          });
+  
+        // ✅ ローカルの履歴に追加
         setHistory((prev) => [...prev, matchedSake]);
+  
       } else {
         setResult(`文字は読み取れましたが、日本酒データに一致する銘柄が見つかりませんでした。\n（認識されたテキスト：${text}）`);
       }
-
-    };
-
-    reader.readAsDataURL(file); // ← Base64に変換開始
+  
+    } catch (error) {
+      console.error("アップロードエラー:", error);
+      setResult("画像の送信中にエラーが発生しました");
+    }
   };
 
 // JSXを返す（画面の内容）
