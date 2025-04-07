@@ -28,7 +28,7 @@ function App() {
       <SakeHistory history={history} />
 
       <hr />
-      <RemoteSakeHistory history={remoteHistory} />
+      <RemoteSakeHistory history={remoteHistory} onRemoteUpdate={fetchRemoteHistory} />
     </div>
   );
 }
